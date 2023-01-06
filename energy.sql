@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 02, 2023 at 05:54 PM
+-- Generation Time: Jan 06, 2023 at 01:38 PM
 -- Server version: 10.4.24-MariaDB
 -- PHP Version: 8.1.4
 
@@ -29,19 +29,20 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `device` (
   `device_id` int(4) NOT NULL,
-  `device_name` varchar(55) NOT NULL
+  `device_name` varchar(55) NOT NULL,
+  `user_fk` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `device`
 --
 
-INSERT INTO `device` (`device_id`, `device_name`) VALUES
-(1, 'Toaster'),
-(2, 'Refrigerator'),
-(3, 'Television'),
-(4, 'Computer'),
-(5, 'Microwave Oven');
+INSERT INTO `device` (`device_id`, `device_name`, `user_fk`) VALUES
+(1, 'Toaster', 22),
+(2, 'Refrigerator', 22),
+(3, 'Television', 22),
+(4, 'Computer', 22),
+(5, 'Microwave', 22);
 
 -- --------------------------------------------------------
 
@@ -51,16 +52,16 @@ INSERT INTO `device` (`device_id`, `device_name`) VALUES
 
 CREATE TABLE `notification` (
   `type` enum('SMS','EMAIL','WEB','') NOT NULL,
-  `notification_message` varchar(150) NOT NULL
+  `notification_message` varchar(150) NOT NULL,
+  `power_fk` int(5) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `notification`
 --
 
-INSERT INTO `notification` (`type`, `notification_message`) VALUES
-('SMS', 'Power consumption exceeded threshold value at 2022/12/12 11:30 AM'),
-('EMAIL', 'Power consumption exceeded threshold value at 2022/12/01 12:00 AM');
+INSERT INTO `notification` (`type`, `notification_message`, `power_fk`) VALUES
+('WEB', 'Warning Power exceeded beyond the threshold value.', 4);
 
 -- --------------------------------------------------------
 
@@ -71,21 +72,34 @@ INSERT INTO `notification` (`type`, `notification_message`) VALUES
 CREATE TABLE `power` (
   `power_id` int(5) NOT NULL,
   `date_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `threshold_value` int(3) NOT NULL,
-  `units` varchar(3) NOT NULL,
-  `device_id` int(4) NOT NULL
+  `current` float NOT NULL,
+  `temperature` int(2) NOT NULL,
+  `device_fk` int(4) NOT NULL,
+  `zone_fk` int(4) NOT NULL,
+  `user_fk` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `power`
 --
 
-INSERT INTO `power` (`power_id`, `date_time`, `threshold_value`, `units`, `device_id`) VALUES
-(1, '2022-12-01 03:53:35', 30, 'kWh', 1),
-(2, '2022-12-01 03:53:35', 30, 'kWh', 2),
-(3, '2022-12-01 03:55:03', 30, 'kWh', 3),
-(4, '2022-12-01 03:55:03', 30, 'kWh', 4),
-(5, '2022-12-01 03:55:39', 30, 'kWh', 5);
+INSERT INTO `power` (`power_id`, `date_time`, `current`, `temperature`, `device_fk`, `zone_fk`, `user_fk`) VALUES
+(1, '2023-01-05 02:42:55', 0.7, 28, 2, 3, 22),
+(2, '2023-01-06 03:52:27', 0.2, 32, 4, 2, 22),
+(3, '2023-01-06 03:52:39', 0.8, 30, 5, 3, 22),
+(4, '2023-01-06 03:52:51', 0.4, 32, 1, 3, 22),
+(5, '2023-01-06 03:53:02', 0.2, 34, 3, 2, 22);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `threshold`
+--
+
+CREATE TABLE `threshold` (
+  `threshold_id` int(4) NOT NULL,
+  `threshold_value` float NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -110,9 +124,8 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`id`, `name`, `username`, `email`, `password`, `mobile`, `isActive`, `created_at`, `updated_at`) VALUES
-(22, 'Lahiru', 'admin', 'styleweelers@gmail.com', '4be30d9814c6d4e9800e0d2ea9ec9fb00efa887b', '0768319182', 0, '2022-12-21 04:56:48', '2022-12-21 04:56:48'),
-(23, 'Mark Perera', 'mark', 'mark@crystal.info', '50360551b49f1181e06c8244402634838c1e1a99', '071111100', 0, '2022-12-22 04:45:14', '2022-12-22 04:45:14'),
-(24, 'Lahiru Janaka Karunaratne', 'lahiru', 'lahiru92@zohomail.com', '7c3607b8e61bcf1944e9e8503a660f21f4b6f3f1', '0768319182', 0, '2022-12-31 05:58:21', '2022-12-31 05:58:21');
+(22, 'Lahiru', 'Lahiru', 'lahiru@abc.lk', '4be30d9814c6d4e9800e0d2ea9ec9fb00efa887b', '0768319182', 0, '2022-12-21 04:56:48', '2022-12-21 04:56:48'),
+(23, 'Mark Perera', 'mark', 'mark@crystal.info', '50360551b49f1181e06c8244402634838c1e1a99', '071111100', 0, '2022-12-22 04:45:14', '2022-12-22 04:45:14');
 
 -- --------------------------------------------------------
 
@@ -122,18 +135,18 @@ INSERT INTO `user` (`id`, `name`, `username`, `email`, `password`, `mobile`, `is
 
 CREATE TABLE `zone` (
   `zone_id` int(4) NOT NULL,
-  `zone_name` varchar(50) NOT NULL
+  `zone_name` varchar(50) NOT NULL,
+  `user_fk` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `zone`
 --
 
-INSERT INTO `zone` (`zone_id`, `zone_name`) VALUES
-(1, 'Bedroom'),
-(2, 'Living Room'),
-(3, 'Kitchen'),
-(4, 'Dining');
+INSERT INTO `zone` (`zone_id`, `zone_name`, `user_fk`) VALUES
+(1, 'Bedroom', 22),
+(2, 'Living Room', 22),
+(3, 'Kitchen', 22);
 
 --
 -- Indexes for dumped tables
@@ -143,20 +156,30 @@ INSERT INTO `zone` (`zone_id`, `zone_name`) VALUES
 -- Indexes for table `device`
 --
 ALTER TABLE `device`
-  ADD PRIMARY KEY (`device_id`);
+  ADD PRIMARY KEY (`device_id`),
+  ADD KEY `user_fk` (`user_fk`);
 
 --
 -- Indexes for table `notification`
 --
 ALTER TABLE `notification`
-  ADD PRIMARY KEY (`type`);
+  ADD PRIMARY KEY (`type`),
+  ADD KEY `power_fk` (`power_fk`);
 
 --
 -- Indexes for table `power`
 --
 ALTER TABLE `power`
   ADD PRIMARY KEY (`power_id`),
-  ADD UNIQUE KEY `device_id` (`device_id`);
+  ADD KEY `device_fk` (`device_fk`),
+  ADD KEY `zone_fk` (`zone_fk`),
+  ADD KEY `user_fk` (`user_fk`);
+
+--
+-- Indexes for table `threshold`
+--
+ALTER TABLE `threshold`
+  ADD PRIMARY KEY (`threshold_id`);
 
 --
 -- Indexes for table `user`
@@ -168,7 +191,8 @@ ALTER TABLE `user`
 -- Indexes for table `zone`
 --
 ALTER TABLE `zone`
-  ADD PRIMARY KEY (`zone_id`);
+  ADD PRIMARY KEY (`zone_id`),
+  ADD KEY `user_fk` (`user_fk`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -184,7 +208,13 @@ ALTER TABLE `device`
 -- AUTO_INCREMENT for table `power`
 --
 ALTER TABLE `power`
-  MODIFY `power_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `power_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `threshold`
+--
+ALTER TABLE `threshold`
+  MODIFY `threshold_id` int(4) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `user`
@@ -196,7 +226,37 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `zone`
 --
 ALTER TABLE `zone`
-  MODIFY `zone_id` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `zone_id` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `device`
+--
+ALTER TABLE `device`
+  ADD CONSTRAINT `device_ibfk_1` FOREIGN KEY (`user_fk`) REFERENCES `user` (`id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `notification`
+--
+ALTER TABLE `notification`
+  ADD CONSTRAINT `notification_ibfk_1` FOREIGN KEY (`power_fk`) REFERENCES `power` (`power_id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `power`
+--
+ALTER TABLE `power`
+  ADD CONSTRAINT `power_ibfk_1` FOREIGN KEY (`device_fk`) REFERENCES `device` (`device_id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `power_ibfk_2` FOREIGN KEY (`zone_fk`) REFERENCES `zone` (`zone_id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `power_ibfk_3` FOREIGN KEY (`user_fk`) REFERENCES `user` (`id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `zone`
+--
+ALTER TABLE `zone`
+  ADD CONSTRAINT `zone_ibfk_1` FOREIGN KEY (`user_fk`) REFERENCES `user` (`id`) ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
